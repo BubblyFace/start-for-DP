@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .yuan {
+            width: 100px;
+            height: 100px;
+            background: black;
+            border-radius: 50px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="yuan" id = "play"></div>
+    <div class="yuan" id = "reload" style="background: red"></div>
+    <audio src="s_k.mp3" id="player"></audio>
+    <script>
+        const play = () => {
+            player = document.querySelector("#player")
+            if (player.paused) {
+                player.play();//audio.play();// 这个就是播放  
+            } else {
+                player.pause();// 这个就是暂停
+            }
+        }
+        const reload = () => {
+            player = document.querySelector("#player")
+            player.load()
+            player.play()
+        }
+    document.querySelector('#play').addEventListener('click', play)
+    document.querySelector('#reload').addEventListener('click', reload)
+    </script>
+</body>
+
+</html>
