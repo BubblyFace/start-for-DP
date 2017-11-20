@@ -5,7 +5,7 @@ import numpy as np
 from utils.data_utils import load_CIFAR10
 import matplotlib.pyplot as plt
 
-form src.classifiers.KNN import KNearestNeighbor
+from src.classifier.KNN import KNearestNeighbor
 
 
 plt.rcParams['figure.figsize'] = (10.0, 8.0) # set default size of plots
@@ -48,3 +48,83 @@ num_test = 500
 mask = list(range(num_test))
 X_test = X_test[mask]
 y_test = y_test[mask]
+
+
+# Create a kNN classifier instance. 
+# Remember that training a kNN classifier is a noop: 
+# the Classifier simply remembers the data and does no further processing 
+classifier = KNearestNeighbor()
+classifier.train(X_train, y_train)
+
+dists = classifier.compute_distances_two_loops(X_test)
+print(dists.shape)
+
+plt.imshow(dists, interpolation='none')
+
+# Now implement the function predict_labels and run the code below:
+# We use k = 1 (which is Nearest Neighbor).
+y_test_pred = classifier.predict_labels(dists, k=1)
+
+# Compute and print the fraction of correctly predicted examples
+num_correct = np.sum(y_test_pred == y_test)
+accuracy = float(num_correct) / num_test
+print('Got %d / %d correct => accuracy: %f' % (num_correct, num_test, accuracy))
+
+y_test_pred = classifier.predict_labels(dists, k=5)
+num_correct = np.sum(y_test_pred == y_test)
+accuracy = float(num_correct) / num_test
+print('Got %d / %d correct => accuracy: %f' % (num_correct, num_test, accuracy))
+
+
+# Now lets speed up distance matrix computation by using partial vectorization
+# with one loop. Implement the function compute_distances_one_loop and run the
+# code below:
+dists_one = classifier.compute_distances_one_loop(X_test)
+
+# To ensure that our vectorized implementation is correct, we make sure that it
+# agrees with the naive implementation. There are many ways to decide whether
+# two matrices are similar; one of the simplest is the Frobenius norm. In case
+# you haven't seen it before, the Frobenius norm of two matrices is the square
+# root of the squared sum of differences of all elements; in other words, reshape
+# the matrices into vectors and compute the Euclidean distance between them.
+difference = np.linalg.norm(dists - dists_one, ord='fro')
+print('Difference was: %f' % (difference, ))
+if difference < 0.001:
+    print('Good! The distance matrices are the same')
+else:
+    print('Uh-oh! The distance matrices are different')
+
+
+# Now implement the fully vectorized version inside compute_distances_no_loops
+# and run the code
+dists_two = classifier.compute_distances_no_loops(X_test)
+
+# check that the distance matrix agrees with the one we computed before:
+difference = np.linalg.norm(dists - dists_two, ord='fro')
+print('Difference was: %f' % (difference, ))
+if difference < 0.001:
+    print('Good! The distance matrices are the same')
+else:
+    print('Uh-oh! The distance matrices are different')
+
+# Let's compare how fast the implementations are
+def time_function(f, *args):
+    """
+    Call a function f with args and return the time (in seconds) that it took to execute.
+    """
+    import time
+    tic = time.time()
+    f(*args)
+    toc = time.time()
+    return toc - tic
+
+two_loop_time = time_function(classifier.compute_distances_two_loops, X_test)
+print('Two loop version took %f seconds' % two_loop_time)
+
+one_loop_time = time_function(classifier.compute_distances_one_loop, X_test)
+print('One loop version took %f seconds' % one_loop_time)
+
+no_loop_time = time_function(classifier.compute_distances_no_loops, X_test)
+print('No loop version took %f seconds' % no_loop_time)
+
+# you should see significantly faster performance with the fully vectorized implementation
